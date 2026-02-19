@@ -19,6 +19,7 @@ void main()
 	trap_init();
 	timer_init();
 	run_all_app();
+	//added the scheduler to run 
 	infof("start scheduler!");
 	scheduler();
 }

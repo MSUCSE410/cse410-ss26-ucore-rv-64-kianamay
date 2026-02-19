@@ -4,7 +4,6 @@
 #include "syscall_ids.h"
 #include "timer.h"
 #include "trap.h"
-#include "proc.h"
 
 uint64 sys_write(int fd, char *str, uint len)
 {
@@ -40,14 +39,17 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz)
 /*
 * LAB1: you may need to define sys_task_info here
 */
-uint64 sys_task_info(struct TaskInfo *ti)
+//fills in TaskInfo struct for the calling process
+int sys_task_info(struct TaskInfo *ti)
 {
-	struct proc *p = curr_proc();
-	int now = get_time();
-	ti->status = Running;
-    memmove(ti->syscall_times, p->syscall_times, sizeof(ti->syscall_times));
-	ti->time = now - (int)p->start_time;
-	return 0;
+    struct proc *p = curr_proc();
+	//sets the status to Running since the process is clearly running if it's making this call
+    ti->status = Running;
+	//copies the syscall counts from the process's own tracking array into the struct
+    memmove(ti->syscall_times, p->syscall_times, sizeof(p->syscall_times));
+	//calculates elapsed time by subtracting start_time from the current time in milliseconds.
+    ti->time = get_time() - p->start_time;
+    return 0;
 }
 
 extern char trap_page[];
@@ -63,8 +65,11 @@ void syscall()
 	/*
 	* LAB1: you may need to update syscall counter for task info here
 	*/
-	if (id < MAX_SYSCALL_NUM)
-    	curr_proc()->syscall_times[id]++;
+	//increment this process's counter for the syscall was just called
+	struct proc *p = curr_proc();
+	if(id >= 0 && id < 500) {
+		p->syscall_times[id]++;
+	}
 	switch (id) {
 	case SYS_write:
 		ret = sys_write(args[0], (char *)args[1], args[2]);
@@ -81,12 +86,11 @@ void syscall()
 	/*
 	* LAB1: you may need to add SYS_taskinfo case here
 	*/
-	case SYS_getpid:
-		ret = curr_proc()->pid;
-		break;
+	//handle the task_info syscall (ID 410)
 	case SYS_task_info:
-		ret = sys_task_info((struct TaskInfo *)args[0]);
-		break;
+    ret = sys_task_info((struct TaskInfo *)args[0]);
+    break;
+
 	default:
 		ret = -1;
 		errorf("unknown syscall %d", id);

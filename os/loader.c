@@ -51,8 +51,8 @@ int run_all_app()
 		/*
 		* LAB1: you may need to initialize your new fields of proc here
 		*/
-		p->start_time = 0;
-		memset(p->syscall_times, 0, sizeof(p->syscall_times));
+		//I didn't need to add anything at the LAB1 comment because allocproc() 
+		//is called at the top of the loop, and that function already zeros out start_time and syscall_times[] for each process
 	}
 	return 0;
 }
