@@ -8,7 +8,7 @@ uint64 get_cycle()
 	return r_time();
 }
 
-int get_time(){
+uint64 get_time(){
 	return get_cycle()/(CPU_FREQ/1000);
 }
 

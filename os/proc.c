@@ -84,17 +84,13 @@ found:
 void scheduler(void)
 {
 	struct proc *p;
-	for (;;) {
+    for (;;) {
 		for (p = pool; p < &pool[NPROC]; p++) {
 			if (p->state == RUNNABLE) {
-				/*
-				* LAB1: you may need to init proc start time here
-				*/
 				p->state = RUNNING;
 				current_proc = p;
 				if (p->start_time == 0)
-                	p->start_time = get_time();
-				
+					p->start_time = get_time();
 				swtch(&idle.context, &p->context);
 			}
 		}

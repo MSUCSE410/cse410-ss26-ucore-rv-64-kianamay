@@ -42,15 +42,12 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz)
 */
 uint64 sys_task_info(struct TaskInfo *ti)
 {
-    struct proc *p = curr_proc();
-    uint64 now = get_cycle();
-    uint64 elapsed = now - p->start_time;
-    debugf("now=%lu start=%lu elapsed=%lu time_ms=%lu", 
-           now, p->start_time, elapsed, elapsed/(CPU_FREQ/1000));
-    ti->status = Running;
+	struct proc *p = curr_proc();
+	int now = get_time();
+	ti->status = Running;
     memmove(ti->syscall_times, p->syscall_times, sizeof(ti->syscall_times));
-    ti->time = (int)(elapsed / (CPU_FREQ / 1000));
-    return 0;
+	ti->time = now - (int)p->start_time;
+	return 0;
 }
 
 extern char trap_page[];
