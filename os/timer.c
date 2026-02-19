@@ -8,6 +8,10 @@ uint64 get_cycle()
 	return r_time();
 }
 
+int get_time(){
+	return get_cycle()/(CPU_FREQ/1000);
+}
+
 /// Enable timer interrupt
 void timer_init()
 {

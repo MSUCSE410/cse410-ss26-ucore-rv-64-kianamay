@@ -65,12 +65,12 @@ struct proc *allocproc(void)
 
 found:
 	p->pid = allocpid();
-	p->state = USED;
-	p->start_time = 0;                                        
+	p->state = USED;                                        
     memset(p->syscall_times, 0, sizeof(p->syscall_times)); 
 	memset(&p->context, 0, sizeof(p->context));
 	memset(p->trapframe, 0, PAGE_SIZE);
 	memset((void *)p->kstack, 0, PAGE_SIZE);
+	p->start_time = 0;
 	p->context.ra = (uint64)usertrapret;
 	p->context.sp = p->kstack + PAGE_SIZE;
 	return p;
@@ -90,10 +90,11 @@ void scheduler(void)
 				/*
 				* LAB1: you may need to init proc start time here
 				*/
-				if (p->start_time == 0)
-                p->start_time = get_cycle();
 				p->state = RUNNING;
 				current_proc = p;
+				if (p->start_time == 0)
+                	p->start_time = get_time();
+				
 				swtch(&idle.context, &p->context);
 			}
 		}
