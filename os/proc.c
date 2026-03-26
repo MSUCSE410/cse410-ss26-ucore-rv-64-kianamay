@@ -68,6 +68,8 @@ found:
 	memset(&p->context, 0, sizeof(p->context));
 	memset((void *)p->kstack, 0, KSTACK_SIZE);
 	memset((void *)p->trapframe, 0, TRAP_PAGE_SIZE);
+	memset(p->syscall_times, 0, sizeof(p->syscall_times));
+	p->start_time = 0;
 	p->context.ra = (uint64)usertrapret;
 	p->context.sp = p->kstack + KSTACK_SIZE;
 	return p;
@@ -89,6 +91,9 @@ void scheduler(void)
 				*/
 				p->state = RUNNING;
 				current_proc = p;
+				if (p->start_time == 0) {
+					p->start_time = get_time_ms();
+				}
 				swtch(&idle.context, &p->context);
 			}
 		}

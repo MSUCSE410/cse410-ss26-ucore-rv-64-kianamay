@@ -41,18 +41,25 @@ struct proc {
 	/*
 	* LAB1: you may need to add some new fields here
 	*/
-	uint64 first_time;           // time
-	uint64 syscall_times[500];   // count of each syscall
+	unsigned int syscall_times[500];
+	int start_time;
 };
 
 /*
 * LAB1: you may need to define struct for TaskInfo here
 */
-typedef enum {UnInit, Ready, Running, Exited}TaskStatus;
+#define MAX_SYSCALL_NUM 500
 
-struct TaskInfo{
-	TaskStatus status;
-	unsigned int syscall_times[500];
+enum TaskStatus {
+	UnInit,
+	Ready,
+	Running,
+	Exited,
+};
+
+struct TaskInfo {
+	enum TaskStatus status;
+	unsigned int syscall_times[MAX_SYSCALL_NUM];
 	int time;
 };
 
