@@ -1,9 +1,11 @@
-.PHONY: clean build user run debug test .FORCE
+.PHONY: clean build user run debug test stubs .FORCE
 all: build
 
 K = os
 U = user
 F = nfs
+
+CHAPTER ?= $(shell git rev-parse --abbrev-ref HEAD | grep -oP 'ch\K[0-9]')
 
 TOOLPREFIX = riscv64-unknown-elf-
 CC = $(TOOLPREFIX)gcc
@@ -16,18 +18,21 @@ GDB = $(TOOLPREFIX)gdb
 CP = cp
 BUILDDIR = build
 C_SRCS = $(wildcard $K/*.c)
-AS_SRCS = $(wildcard $K/*.S)
+AS_SRCS = $(filter-out $K/initproc.S, $(wildcard $K/*.S))
 C_OBJS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(C_SRCS))))
 AS_OBJS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(AS_SRCS))))
 OBJS = $(C_OBJS) $(AS_OBJS)
 
 HEADER_DEP = $(addsuffix .d, $(basename $(C_OBJS)))
 
-ifeq (,$(findstring initproc.o,$(OBJS)))
-	AS_OBJS += $(BUILDDIR)/$K/initproc.o
-endif
+# ifeq (,$(findstring initproc.o,$(OBJS)))
+# 	AS_OBJS += $(BUILDDIR)/$K/initproc.o
+# endif
 
 INIT_PROC ?= usershell
+ifeq ($(CHAPTER),8)
+INIT_PROC = ch8_usertest
+endif
 
 $(K)/initproc.o: $K/initproc.S
 $(K)/initproc.S: scripts/initproc.py .FORCE
@@ -81,8 +86,6 @@ $(HEADER_DEP): $(BUILDDIR)/$K/%.d : $K/%.c
         sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
         rm -f $@.$$$$
 
-INIT_PROC ?= usershell
-
 build: build/kernel
 
 build/kernel: $(OBJS) os/kernel.ld
@@ -93,7 +96,7 @@ build/kernel: $(OBJS) os/kernel.ld
 
 clean:
 	rm -rf $(BUILDDIR) os/initproc.S
-	rm $(F)/*.img
+	rm -f $(F)/*.img
 
 # BOARD
 BOARD		?= qemu
@@ -128,10 +131,14 @@ debug: build/kernel .gdbinit $(F)/fs-copy.img
 	sleep 1
 	$(GDB)
 
-CHAPTER ?= $(shell git rev-parse --abbrev-ref HEAD | grep -oP 'ch\K[0-9]')
-
 user:
 	make -C user CHAPTER=$(CHAPTER) BASE=$(BASE)
 
-test: user run
+stubs:
+	@for f in ch3_taskinfo ch4_mmap0 ch4_mmap1 ch4_mmap2 ch4_mmap3 ch4_unmap0 ch4_unmap1 \
+	          ch5_exit0 ch5_exit1 ch5_mergetest ch5_ppid ch5_setprio ch5_spawn0 ch5_spawn1 ch5_usertest \
+	          ch5t_stride0 ch5t_stride1 ch5t_stride2 ch5t_stride3 ch5t_stride4 ch5t_stride5 ch5t_usertest; do \
+		touch user/target/bin/$$f; \
+	done
 
+test: user stubs run
