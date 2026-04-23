@@ -95,6 +95,7 @@ uint64 sys_wait(int pid, uint64 va)
 
 uint64 sys_spawn(uint64 va)
 {
+	//Gets the currently running process 
 	struct proc *p = curr_proc();
     char name[200];
     copyinstr(p->pagetable, name, va, 200);
