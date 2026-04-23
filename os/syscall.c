@@ -5,6 +5,15 @@
 #include "timer.h"
 #include "trap.h"
 
+//I modified sys_gettimeofday and sys_task_info to build structures in kernel 
+// space and use copyout() to safely write to user memory. 
+// I implemented sys_mmap to allocate physical pages
+//nd map them into a process’s page table using mappages(), 
+// and sys_munmap to verify mappings and free them with uvmunmap()
+//mappages() creates a mapping between a virtual address and a physical address.
+//updates the page table so the CPU knows where to find memory
+
+
 uint64 sys_write(int fd, uint64 va, uint len)
 {
 	debugf("sys_write fd = %d va = %x, len = %d", fd, va, len);
@@ -37,13 +46,21 @@ uint64 sys_sched_yield()
  * The user passes a virtual address (val is a VA in user space).
  * We must build the TimeVal on the kernel stack, then copyout to user space.
  */
+ //modified so it builds data in kernel memory 
+ //using copyout to copy to virtual addresses 
+ //
 uint64 sys_gettimeofday(uint64 val_va, int _tz)
 {
 	struct proc *p = curr_proc();
-	TimeVal tv;
+	//tv is a virtual address
+	TimeVal tv;    // build on kernel stack 
+	//compute the current time using CPU cycles.
+	//store the result in a TimeVal struct on the kernel stack
 	uint64 cycle = get_cycle();
 	tv.sec = cycle / CPU_FREQ;
 	tv.usec = (cycle % CPU_FREQ) * 1000000 / CPU_FREQ;
+	//use copyout to copy the address into user virtual address
+	// since you cannot just dereference it
 	if (copyout(p->pagetable, val_va, (char *)&tv, sizeof(tv)) < 0)
 		return -1;
 	return 0;
@@ -53,6 +70,8 @@ uint64 sys_gettimeofday(uint64 val_va, int _tz)
  * Task 1: Fix sys_task_info for virtual memory.
  * Same idea — build TaskInfo on kernel stack, copyout to user VA.
  */
+ //previously wrote into user memory 
+ //create a TaskInfo struct in kernel space
 uint64 sys_task_info(uint64 ti_va)
 {
 	struct proc *p = curr_proc();
@@ -75,6 +94,8 @@ uint64 sys_task_info(uint64 ti_va)
  * PTE bits:  PTE_R=bit1, PTE_W=bit2, PTE_X=bit3, PTE_U=bit4
  * So we shift port left by 1 to convert to PTE R/W/X flags, then add PTE_U.
  */
+
+ //dynamically alloc virutal memory 
 uint64 sys_mmap(uint64 start, uint64 len, int port, int flag, int fd)
 {
 	// len == 0: return success immediately
@@ -136,6 +157,8 @@ uint64 sys_mmap(uint64 start, uint64 len, int port, int flag, int fd)
  * Verify all pages in [start, start + len) are currently mapped,
  * then unmap and free them.
  */
+
+ //frees memory 
 uint64 sys_munmap(uint64 start, uint64 len)
 {
 	if (len == 0)

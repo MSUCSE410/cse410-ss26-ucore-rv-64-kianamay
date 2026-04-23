@@ -6,6 +6,10 @@
 
 #define NPROC (16)
 
+//modified proc.h to extend the process structure 
+// so the kernel could track syscall counts and runtime 
+// information for each process.
+
 // Saved registers for kernel context switches.
 struct context {
 	uint64 ra;
@@ -59,7 +63,9 @@ enum TaskStatus {
 
 struct TaskInfo {
 	enum TaskStatus status;
+	// count of each syscall made by this process
 	unsigned int syscall_times[MAX_SYSCALL_NUM];
+	// ms timestamp when process first ran
 	int time;
 };
 
