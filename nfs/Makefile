@@ -1,7 +1,7 @@
 .DEFAULT_GOAL = fs.img
 
 U := ../user
-USER_BIN_DIR := target/bin
+USER_BIN_DIR := build/bin
 
 FS_FUSE := fs
 
