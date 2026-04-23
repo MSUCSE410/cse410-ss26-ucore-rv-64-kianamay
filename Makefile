@@ -16,16 +16,16 @@ GDB = $(TOOLPREFIX)gdb
 CP = cp
 BUILDDIR = build
 C_SRCS = $(wildcard $K/*.c)
-AS_SRCS = $(wildcard $K/*.S)
+AS_SRCS = $(filter-out $K/initproc.S, $(wildcard $K/*.S))
 C_OBJS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(C_SRCS))))
 AS_OBJS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(AS_SRCS))))
 OBJS = $(C_OBJS) $(AS_OBJS)
 
 HEADER_DEP = $(addsuffix .d, $(basename $(C_OBJS)))
 
-ifeq (,$(findstring initproc.o,$(OBJS)))
-	AS_OBJS += $(BUILDDIR)/$K/initproc.o
-endif
+# ifeq (,$(findstring initproc.o,$(OBJS)))
+# 	AS_OBJS += $(BUILDDIR)/$K/initproc.o
+# endif
 
 INIT_PROC ?= usershell
 
